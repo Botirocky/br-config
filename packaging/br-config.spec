@@ -37,7 +37,8 @@ FELESLEGES = ("Qt6Pdf", "Qt6Qml", "Qt6Quick", "Qt6VirtualKeyboard", "Qt6EglFS", 
               "opengl32sw", "Qt6WebEngine", "libgtk-3", "libgdk-3", "libgdk_pixbuf", "libatk",
               "libatspi", "libcairo", "libpango", "libglycin", "libtinysparql", "libcloudproviders",
               "libjson-glib", "libicudata.so.78", "libicuuc.so.78", "libepoxy", "libthai",
-              "libdatrie", "libpixman", "libxml2", "libseccomp")
+              "libdatrie", "libpixman", "libxml2", "libseccomp", "libfontconfig", "libfreetype",
+              "libharfbuzz")
 
 
 def _kell(elem) -> bool:
