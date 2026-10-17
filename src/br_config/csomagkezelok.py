@@ -1,11 +1,11 @@
-__lazy_modules__ = ["json", "subprocess", "tempfile"]
+__lazy_modules__ = ["json", "tempfile"]
 
 import json
-import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from br_config.folyamat import kimenet
 from br_config.lepesek import Parancs, parancs
 from br_config.rendszer import Rendszer, van_program
 
@@ -128,28 +128,20 @@ def winget_export_feldolgoz(szoveg: str) -> set[str]:
     }
 
 
-def _kimenet(argv: list[str]) -> str:
-    try:
-        return subprocess.run(argv, capture_output=True, text=True, timeout=120,
-                              encoding="utf-8", errors="replace").stdout
-    except (OSError, subprocess.SubprocessError):
-        return ""
-
-
 def telepitett(kezelo: Kezelo) -> set[str]:
     match kezelo.nev:
         case "pacman":
-            return soronkent(_kimenet(["pacman", "-Qq"]))
+            return soronkent(kimenet(["pacman", "-Qq"]))
         case "apt":
-            return soronkent(_kimenet(["dpkg-query", "-W", "-f", "${Package}\n"]))
+            return soronkent(kimenet(["dpkg-query", "-W", "-f", "${Package}\n"]))
         case "dnf" | "zypper":
-            return soronkent(_kimenet(["rpm", "-qa", "--qf", "%{NAME}\n"]))
+            return soronkent(kimenet(["rpm", "-qa", "--qf", "%{NAME}\n"]))
         case "flatpak":
-            return soronkent(_kimenet(["flatpak", "list", "--app", "--columns=application"]))
+            return soronkent(kimenet(["flatpak", "list", "--app", "--columns=application"]))
         case "winget":
             with tempfile.TemporaryDirectory() as mappa:
                 fajl = Path(mappa) / "export.json"
-                _kimenet(["winget", "export", "-o", str(fajl), "--accept-source-agreements"])
+                kimenet(["winget", "export", "-o", str(fajl), "--accept-source-agreements"], 120)
                 try:
                     return winget_export_feldolgoz(fajl.read_text(encoding="utf-8-sig"))
                 except (OSError, json.JSONDecodeError):

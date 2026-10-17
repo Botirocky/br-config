@@ -1,8 +1,7 @@
-__lazy_modules__ = ["shutil", "subprocess", "tempfile"]
+__lazy_modules__ = ["shutil", "tempfile"]
 
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 from collections.abc import Callable
@@ -10,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from br_config.csomagkezelok import Kezelo
+from br_config.folyamat import kimenet
 from br_config.lepesek import Lepes, PythonLepes, parancs
 from br_config.rendszer import Rendszer, van_program
 
@@ -23,11 +23,7 @@ SEMA_KIEGYENSULYOZOTT = "381b4222-f694-41f0-9685-ff5bb260df2e"
 
 
 def _kimenet(argv: list[str]) -> str:
-    try:
-        return subprocess.run(argv, capture_output=True, text=True, timeout=20,
-                              encoding="utf-8", errors="replace").stdout
-    except (OSError, subprocess.SubprocessError):
-        return ""
+    return kimenet(argv, 20)
 
 
 def _fajl(utvonal: str) -> str:

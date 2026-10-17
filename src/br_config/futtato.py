@@ -2,10 +2,10 @@ __lazy_modules__ = ["shlex", "subprocess"]
 
 import shlex
 import subprocess
-import sys
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 
+from br_config.folyamat import ablak_nelkul, dekodol, gyermek_kornyezet
 from br_config.lepesek import Lepes, Parancs, PythonLepes
 from br_config.rendszer import Rendszer, rendszergazda, van_program
 
@@ -96,14 +96,11 @@ class Futtato:
             self.kimenet(sor)
 
     def _sorok(self, argv: list[str]) -> Iterator[str]:
-        extra = {}
-        if sys.platform.startswith("win"):
-            extra["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
         with subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              stdin=subprocess.DEVNULL, text=True, encoding="utf-8",
-                              errors="replace", bufsize=1, **extra) as folyamat:
+                              stdin=subprocess.DEVNULL, env=gyermek_kornyezet(),
+                              **ablak_nelkul()) as folyamat:
             assert folyamat.stdout is not None
             for sor in folyamat.stdout:
-                yield sor.rstrip()
+                yield dekodol(sor).rstrip()
         if folyamat.returncode != 0:
             raise FuttatasiHiba(f"A parancs {folyamat.returncode} kóddal állt le: {argv[0]}")

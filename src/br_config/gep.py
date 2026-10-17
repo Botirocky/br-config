@@ -1,11 +1,11 @@
-__lazy_modules__ = ["json", "subprocess"]
+__lazy_modules__ = ["json"]
 
 import json
 import re
-import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from br_config.folyamat import kimenet
 from br_config.rendszer import Rendszer, felismer, van_program
 
 GYARTOK = {
@@ -137,14 +137,6 @@ def _olvas(utvonal: str) -> str:
         return ""
 
 
-def _futtat(argv: list[str]) -> str:
-    try:
-        return subprocess.run(argv, capture_output=True, text=True, timeout=30,
-                              encoding="utf-8", errors="replace").stdout
-    except (OSError, subprocess.SubprocessError):
-        return ""
-
-
 def _linux_gep() -> GepInfo:
     info = GepInfo(
         cpu=cpuinfo_feldolgoz(_olvas("/proc/cpuinfo")),
@@ -152,16 +144,16 @@ def _linux_gep() -> GepInfo:
         laptop=any(Path("/sys/class/power_supply").glob("BAT*")),
     )
     if van_program("lspci"):
-        pci = lspci_feldolgoz(_futtat(["lspci", "-mm"]))
+        pci = lspci_feldolgoz(kimenet(["lspci", "-mm"]))
         info.gpuk, info.halozat, info.hang = pci["gpu"], pci["halozat"], pci["hang"]
     return info
 
 
 def _windows_gep() -> GepInfo:
-    kimenet = _futtat(["powershell", "-NoProfile", "-NonInteractive", "-Command",
-                       WINDOWS_LEKERDEZES])
+    szoveg = kimenet(["powershell", "-NoProfile", "-NonInteractive", "-Command",
+                      WINDOWS_LEKERDEZES])
     try:
-        return windows_feldolgoz(kimenet)
+        return windows_feldolgoz(szoveg)
     except json.JSONDecodeError:
         return GepInfo()
 

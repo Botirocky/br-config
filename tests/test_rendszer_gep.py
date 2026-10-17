@@ -97,3 +97,16 @@ def test_windows_json_egy_gpu_objektumkent():
 def test_windows_json_hianyos():
     info = gep.windows_feldolgoz("{}")
     assert info.gpuk == [] and info.ram_gb == 0.0
+
+
+def test_windows_gepfelismeres_powershell_kimenettel(monkeypatch):
+    szoveg = json.dumps({"cpu": {"Name": "Intel Core i5", "Manufacturer": "GenuineIntel"},
+                         "gpu": [], "ram": 8589934592, "akku": 1})
+    monkeypatch.setattr(gep, "kimenet", lambda argv, *a: szoveg)
+    info = gep._windows_gep()
+    assert info.cpu.gyarto == "intel" and info.ram_gb == 8.0 and info.laptop
+
+
+def test_windows_gepfelismeres_hibas_kimenettel(monkeypatch):
+    monkeypatch.setattr(gep, "kimenet", lambda argv, *a: "nem json")
+    assert gep._windows_gep().gpuk == []
