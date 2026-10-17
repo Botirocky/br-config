@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BR Config – a géped beállításai egy helyen</title>
+<meta name="description" content="Nyílt forrású konfigurációs központ Windowsra és Linuxra: gépfelismerés, driverek, programtelepítés, tuning és indítópult. Készítette: Botirocky.">
+<meta property="og:title" content="BR Config">
+<meta property="og:description" content="Gépfelismerés, driverek, programtelepítés és tuning egy helyen, Windowsra és Linuxra.">
+<meta property="og:image" content="https://botirocky.github.io/br-config/kepek/logo-512.png">
+<meta name="theme-color" content="#0F172A">
+<link rel="icon" type="image/svg+xml" href="kepek/logo.svg">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ej: #0F172A;
+  --pala: #1E293B;
+  --pala-2: #273449;
+  --vonal: #334155;
+  --kod: #94A3B8;
+  --ho: #F8FAFC;
+  --halvany: #CBD5E1;
+  --zold: #22C55E;
+  --zold-vilagos: #4ADE80;
+  --zold-sotet: #052E16;
+  --borostyan: #FBBF24;
+  --terminal: #020617;
+  --betu: "Schibsted Grotesk", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+  --szel: 1160px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--ej);
+  color: var(--ho);
+  font-family: var(--betu);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--zold-vilagos); outline-offset: 3px; border-radius: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ugro {
+  position: absolute; left: 16px; top: -60px; z-index: 10;
+  background: var(--zold); color: var(--zold-sotet); padding: 10px 16px; border-radius: 8px;
+  font-weight: 700; text-decoration: none;
+}
+.ugro:focus { top: 16px; }
+.keret { width: min(100% - 40px, var(--szel)); margin-inline: auto; }
+
+.fejlec {
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(15, 23, 42, 0.86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+}
+.fejlec .keret { display: flex; align-items: center; gap: 24px; height: 68px; }
+.marka { display: flex; align-items: center; gap: 12px; text-decoration: none; font-weight: 800; font-size: 1.15rem; letter-spacing: -0.01em; }
+.marka img { width: 34px; height: 34px; }
+.menu { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+.menu a { text-decoration: none; color: var(--halvany); padding: 8px 12px; border-radius: 8px; font-weight: 500; font-size: 0.95rem; }
+.menu a:hover { color: var(--ho); background: var(--pala); }
+.menu .gomb { margin-left: 8px; }
+
+.gomb {
+  display: inline-flex; align-items: center; gap: 10px;
+  text-decoration: none; font-weight: 700; font-size: 1rem;
+  padding: 13px 22px; border-radius: 10px; border: 1px solid var(--vonal);
+  background: var(--pala-2); color: var(--ho);
+  transition: background-color 160ms ease, border-color 160ms ease;
+  min-height: 48px;
+}
+.gomb:hover { background: var(--vonal); border-color: #475569; }
+.gomb.fo { background: var(--zold); border-color: var(--zold); color: var(--zold-sotet); }
+.gomb.fo:hover { background: var(--zold-vilagos); }
+.gomb svg { width: 20px; height: 20px; flex: none; }
+.menu .gomb { padding: 8px 16px; min-height: 40px; font-size: 0.95rem; }
+
+.hos { padding: 88px 0 72px; }
+.hos .keret { display: grid; grid-template-columns: 1.02fr 1fr; gap: 64px; align-items: center; }
+.hos h1 {
+  font-size: clamp(2.6rem, 5.4vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+  margin: 0 0 24px;
+  text-wrap: balance;
+}
+.hos .bevezeto { font-size: 1.22rem; color: var(--halvany); max-width: 34em; margin: 0 0 36px; }
+.hos .gombok { display: flex; flex-wrap: wrap; gap: 12px; }
+.hos .apro { margin-top: 22px; color: var(--kod); font-size: 0.95rem; }
+.hos .apro a { color: var(--halvany); }
+
+.demo {
+  background: var(--pala);
+  border: 1px solid var(--vonal);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px -30px rgba(2, 6, 23, 0.9);
+}
+.demo-fej { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--vonal); }
+.demo-fej strong { font-size: 1rem; }
+.proba { display: inline-flex; align-items: center; gap: 8px; color: var(--kod); font-size: 0.9rem; }
+.proba i { width: 8px; height: 8px; border-radius: 50%; background: var(--borostyan); display: inline-block; }
+.demo ul { list-style: none; margin: 0; padding: 4px 20px; }
+.demo li { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(51, 65, 85, 0.7); }
+.demo li:last-child { border-bottom: 0; }
+.demo li div { flex: 1; min-width: 0; }
+.demo li b { display: block; font-weight: 600; font-size: 1rem; }
+.demo li span { color: var(--kod); font-size: 0.9rem; }
+.kapcsolo {
+  position: relative; flex: none; width: 52px; height: 30px; border-radius: 999px;
+  border: 0; padding: 0; cursor: pointer; background: #475569;
+  transition: background-color 180ms ease-out;
+}
+.kapcsolo::after {
+  content: ""; position: absolute; top: 4px; left: 4px; width: 22px; height: 22px;
+  border-radius: 50%; background: #fff; transition: transform 180ms ease-out;
+}
+.kapcsolo[aria-checked="true"] { background: var(--zold); }
+.kapcsolo[aria-checked="true"]::after { transform: translateX(22px); }
+.terminal {
+  background: var(--terminal); border-top: 1px solid var(--vonal);
+  font-family: var(--mono); font-size: 0.86rem; line-height: 1.7;
+  padding: 16px 20px; min-height: 132px; color: var(--halvany);
+}
+.terminal p { margin: 0; white-space: pre-wrap; word-break: break-word; }
+.terminal .ures { color: #64748B; }
+.terminal .root { color: var(--borostyan); }
+.terminal .kesz { color: var(--zold-vilagos); }
+
+.kep-szekcio { padding: 24px 0 96px; }
+.ablak {
+  border: 1px solid var(--vonal); border-radius: 16px; overflow: hidden; background: var(--pala);
+  box-shadow: 0 40px 100px -40px rgba(0, 0, 0, 0.8);
+}
+.ablak-sav { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--vonal); }
+.ablak-sav i { width: 12px; height: 12px; border-radius: 50%; background: var(--vonal); }
+.fulek { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.ful {
+  font: inherit; font-weight: 600; font-size: 0.95rem; color: var(--halvany);
+  background: transparent; border: 1px solid var(--vonal); border-radius: 999px;
+  padding: 8px 18px; cursor: pointer; min-height: 40px;
+}
+.ful:hover { color: var(--ho); border-color: #475569; }
+.ful[aria-selected="true"] { background: var(--ho); color: var(--ej); border-color: var(--ho); }
+.ablak { margin: 0; }
+.felirat { color: var(--kod); font-size: 0.95rem; margin: 14px 0 0; }
+
+section h2 {
+  font-size: clamp(1.9rem, 3.4vw, 2.7rem); line-height: 1.1; letter-spacing: -0.025em;
+  margin: 0 0 16px; font-weight: 800; text-wrap: balance;
+}
+.szekcio-bev { color: var(--halvany); max-width: 40em; margin: 0 0 48px; font-size: 1.12rem; }
+
+.tudas { padding: 96px 0; border-top: 1px solid var(--vonal); }
+.tudas-sor { display: grid; grid-template-columns: 300px 1fr; gap: 48px; padding: 36px 0; border-top: 1px solid rgba(51, 65, 85, 0.6); }
+.tudas-sor:first-of-type { border-top: 0; }
+.tudas-sor h3 { margin: 0; font-size: 1.4rem; letter-spacing: -0.015em; line-height: 1.25; }
+.tudas-sor p { margin: 0 0 14px; color: var(--halvany); max-width: 42em; }
+.cimkek { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.cimkek li { font-size: 0.9rem; padding: 5px 12px; border-radius: 8px; background: var(--pala); border: 1px solid var(--vonal); color: var(--halvany); }
+
+.lepesek { padding: 96px 0; background: linear-gradient(180deg, var(--ej), #0B1222); border-top: 1px solid var(--vonal); }
+.lepesek ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; counter-reset: lepes; }
+.lepesek li { counter-increment: lepes; border-top: 2px solid var(--vonal); padding-top: 20px; }
+.lepesek li::before { content: counter(lepes); display: block; font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--zold); margin-bottom: 14px; letter-spacing: -0.03em; }
+.lepesek h3 { margin: 0 0 8px; font-size: 1.15rem; }
+.lepesek p { margin: 0; color: var(--halvany); font-size: 1rem; }
+
+.letoltes { padding: 96px 0; border-top: 1px solid var(--vonal); }
+.platformok { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.platform { background: var(--pala); border: 1px solid var(--vonal); border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+.platform h3 { margin: 0; font-size: 1.35rem; display: flex; align-items: center; gap: 12px; }
+.platform h3 svg { width: 26px; height: 26px; }
+.platform p { margin: 0; color: var(--halvany); }
+.platform pre {
+  margin: 0; background: var(--terminal); border: 1px solid var(--vonal); border-radius: 10px;
+  padding: 14px 16px; font-family: var(--mono); font-size: 0.86rem; color: var(--halvany);
+  overflow-x: auto; line-height: 1.7;
+}
+.platform .gomb { align-self: flex-start; margin-top: auto; }
+.kovetelmeny { margin-top: 28px; color: var(--kod); font-size: 0.98rem; }
+.kovetelmeny b { color: var(--halvany); font-weight: 600; }
+
+.nyilt { padding: 96px 0; border-top: 1px solid var(--vonal); }
+.nyilt .keret { display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; }
+.nyilt p { color: var(--halvany); max-width: 40em; margin: 0; }
+
+.lab { border-top: 1px solid var(--vonal); padding: 32px 0 44px; color: var(--kod); font-size: 0.95rem; }
+.lab .keret { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: center; }
+.lab a { color: var(--halvany); }
+.lab .marka { color: var(--ho); font-size: 1rem; }
+.lab .marka img { width: 26px; height: 26px; }
+.lab .jobb { margin-left: auto; display: flex; gap: 24px; }
+
+@media (max-width: 960px) {
+  .hos { padding: 56px 0 48px; }
+  .hos .keret { grid-template-columns: 1fr; gap: 44px; }
+  .tudas-sor { grid-template-columns: 1fr; gap: 12px; }
+  .lepesek ol { grid-template-columns: 1fr 1fr; }
+  .platformok { grid-template-columns: 1fr; }
+  .nyilt .keret { grid-template-columns: 1fr; gap: 24px; }
+}
+@media (max-width: 640px) {
+  .menu a:not(.gomb) { display: none; }
+  .lepesek ol { grid-template-columns: 1fr; }
+  .lab .jobb { margin-left: 0; }
+  .hos .gomb { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<a class="ugro" href="#tartalom">Ugrás a tartalomhoz</a>
+
+<header class="fejlec">
+  <div class="keret">
+    <a class="marka" href="#" aria-label="BR Config, kezdőlap"><img src="kepek/logo.svg" alt="" width="34" height="34">BR Config</a>
+    <nav class="menu" aria-label="Fő menü">
+      <a href="#mit-tud">Mit tud</a>
+      <a href="#hogyan">Hogyan működik</a>
+      <a href="https://github.com/Botirocky/br-config">GitHub</a>
+      <a class="gomb fo" href="#letoltes">Letöltés</a>
+    </nav>
+  </div>
+</header>
+
+<main id="tartalom">
+  <section class="hos">
+    <div class="keret">
+      <div>
+        <h1>Állítsd be a gépedet úgy, hogy közben pontosan látod, mi történik.</h1>
+        <p class="bevezeto">A BR Config felismeri a hardvert, felrakja a hiányzó drivereket és a kedvenc programjaidat, és egy kattintással hangolja a rendszert. Windowson és Linuxon is. Minden lépés előtt megmutatja a parancsot, és minden kapcsoló visszaállítható.</p>
+        <div class="gombok">
+          <a class="gomb fo" href="https://github.com/Botirocky/br-config/releases/latest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Letöltés
+          </a>
+          <a class="gomb" href="https://github.com/Botirocky/br-config">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.4 3.4 0 0 0-.9-2.6c3.1-.4 6.4-1.5 6.4-7A5.4 5.4 0 0 0 20 4.8 5 5 0 0 0 19.9 1S18.7.6 16 2.5a13.4 13.4 0 0 0-7 0C6.3.6 5.1 1 5.1 1A5 5 0 0 0 5 4.8a5.4 5.4 0 0 0-1.5 3.7c0 5.4 3.3 6.6 6.4 7A3.4 3.4 0 0 0 9 18.1V22"/></svg>
+            Forráskód
+          </a>
+        </div>
+        <p class="apro">Ingyenes és nyílt forrású (GPL-3.0). Készítette: <a href="https://github.com/Botirocky">Botirocky</a>.</p>
+      </div>
+
+      <div class="demo" aria-label="Kipróbálható bemutató: a kapcsolók megmutatják, milyen parancs futna">
+        <div class="demo-fej">
+          <strong>Tuning</strong>
+          <span class="proba"><i aria-hidden="true"></i>Próba mód: itt semmi nem fut le</span>
+        </div>
+        <ul>
+          <li>
+            <div><b id="t1">Teljesítmény energiaprofil</b><span>Játékhoz: a processzor nem lassít vissza.</span></div>
+            <button class="kapcsolo" role="switch" aria-checked="false" aria-labelledby="t1"
+              data-be="powerprofilesctl set performance" data-ki="powerprofilesctl set balanced"></button>
+          </li>
+          <li>
+            <div><b id="t2">TCP BBR torlódáskezelés</b><span>Gyorsabb, stabilabb hálózat, főleg wifin.</span></div>
+            <button class="kapcsolo" role="switch" aria-checked="false" aria-labelledby="t2"
+              data-root="1"
+              data-be="sh -c 'printf … &gt; /etc/sysctl.d/90-br-config-bbr.conf &amp;&amp; sysctl -q -w net.ipv4.tcp_congestion_control=bbr'"
+              data-ki="sh -c 'rm -f /etc/sysctl.d/90-br-config-bbr.conf &amp;&amp; sysctl -q -w net.ipv4.tcp_congestion_control=cubic'"></button>
+          </li>
+          <li>
+            <div><b id="t3">Fájlkiterjesztések mutatása</b><span>Windows: látod, ha egy „PDF” valójában .exe.</span></div>
+            <button class="kapcsolo" role="switch" aria-checked="false" aria-labelledby="t3"
+              data-be="reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 0 /f"
+              data-ki="reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced /v HideFileExt /t REG_DWORD /d 1 /f"></button>
+          </li>
+          <li>
+            <div><b id="t4">Telemetria minimalizálása</b><span>Windows: csak a szükséges diagnosztika megy ki.</span></div>
+            <button class="kapcsolo" role="switch" aria-checked="false" aria-labelledby="t4"
+              data-root="1"
+              data-be="reg add HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection /v AllowTelemetry /t REG_DWORD /d 0 /f"
+              data-ki="reg delete HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection /v AllowTelemetry /f"></button>
+          </li>
+        </ul>
+        <div class="terminal" aria-live="polite" id="terminal">
+          <p class="ures">Kapcsolj át egy beállítást, és itt látod, mit futtatna a BR Config.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kep-szekcio" aria-labelledby="kepek-cim">
+    <div class="keret">
+      <h2 id="kepek-cim" class="sr-only">Képernyőképek</h2>
+      <div class="fulek" role="tablist" aria-label="Képernyőképek">
+        <button class="ful" role="tab" aria-selected="true" aria-controls="kepernyo" data-kep="kepek/attekintes.webp" data-felirat="Áttekintés: a felismert hardver és az ajánlott driverek, egy kattintással telepíthetők.">Áttekintés</button>
+        <button class="ful" role="tab" aria-selected="false" aria-controls="kepernyo" data-kep="kepek/programok.webp" data-felirat="Programok: jelöld ki, amit szeretnél, és mind felkerül a rendszer saját csomagkezelőjével.">Programok</button>
+        <button class="ful" role="tab" aria-selected="false" aria-controls="kepernyo" data-kep="kepek/tuning.webp" data-felirat="Tuning: kategóriák szerint rendezett, visszaállítható kapcsolók.">Tuning</button>
+      </div>
+      <figure class="ablak" id="kepernyo" role="tabpanel">
+        <div class="ablak-sav" aria-hidden="true"><i></i><i></i><i></i></div>
+        <img id="kepernyo-kep" src="kepek/attekintes.webp" width="1180" height="780" alt="A BR Config Áttekintés oldala a felismert hardverrel és a driver-ajánlásokkal" loading="lazy">
+      </figure>
+      <p class="felirat" id="kepernyo-felirat">Áttekintés: a felismert hardver és az ajánlott driverek, egy kattintással telepíthetők.</p>
+    </div>
+  </section>
+
+  <section class="tudas" id="mit-tud" aria-labelledby="tudas-cim">
+    <div class="keret">
+      <h2 id="tudas-cim">Ami egy friss telepítés után kell, egy helyen</h2>
+      <p class="szekcio-bev">Nem kell tíz fórumot végigolvasni, hogy melyik driver kell, és melyik registry-kulcs mit csinál. A BR Config elvégzi helyetted, és közben mindent megmutat.</p>
+
+      <div class="tudas-sor">
+        <h3>Gépfelismerés és driverek</h3>
+        <div>
+          <p>Felismeri a processzort, a videókártyákat, a hálózati és hangeszközöket, és ezek alapján ajánl drivert. Linuxon a disztribúciód csomagjait (például NVIDIA-hoz a nyílt kernelmodult, AMD-hez a Mesa Vulkan-drivert), CachyOS-en a chwd-t, Ubuntun az ubuntu-drivers eszközt használja. Windowson a Windows Update-re és a gyártó hivatalos oldalára visz.</p>
+          <ul class="cimkek" aria-label="Felismert gyártók"><li>NVIDIA</li><li>AMD</li><li>Intel</li><li>Mikrokód</li><li>Firmware</li></ul>
+        </div>
+      </div>
+      <div class="tudas-sor">
+        <h3>Programtelepítés egy kattintással</h3>
+        <div>
+          <p>Több mint harminc válogatott program: böngészők, Discord, Steam, OBS, VS Code, LibreOffice és társaik. Kijelölöd, amit szeretnél, és a BR Config a rendszered saját csomagkezelőjével telepíti őket. Ha valami nincs benne, a Flatpakot használja. Egy gombbal mindent frissíthetsz is.</p>
+          <ul class="cimkek" aria-label="Támogatott csomagkezelők"><li>winget</li><li>pacman</li><li>apt</li><li>dnf</li><li>zypper</li><li>Flatpak</li></ul>
+        </div>
+      </div>
+      <div class="tudas-sor">
+        <h3>Tuning</h3>
+        <div>
+          <p>Teljesítmény- és energiaprofilok, swappiness, TCP BBR, titkosított DNS, SSD TRIM, Windows Játék mód, egérgyorsítás, telemetria és hirdetési azonosító. Minden kapcsoló a valós állapotot mutatja, és visszaállítható. A takarítás (csomag-gyorsítótár, napló, TEMP, Lomtár) külön gombokon érhető el.</p>
+        </div>
+      </div>
+      <div class="tudas-sor">
+        <h3>Indítópult</h3>
+        <div>
+          <p>Látod, mi indul el bejelentkezéskor, és egy kapcsolóval letilthatod. Linuxon felülíró .desktop fájllal, Windowson ugyanúgy, ahogy a Feladatkezelő csinálja. Semmit nem töröl, így bármikor visszakapcsolhatod.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="lepesek" id="hogyan" aria-labelledby="hogyan-cim">
+    <div class="keret">
+      <h2 id="hogyan-cim">Hogyan működik</h2>
+      <p class="szekcio-bev">A BR Config semmit nem csinál a hátad mögött. A rendszer saját eszközeit hívja, és minden parancs a naplóban marad.</p>
+      <ol>
+        <li><h3>Felismer</h3><p>Indításkor felméri a hardvert, a rendszert és a telepített csomagokat.</p></li>
+        <li><h3>Kiválasztod</h3><p>Bejelölöd a programokat, vagy átkapcsolod a beállításokat. Az egér alatt látod a pontos parancsot.</p></li>
+        <li><h3>Engedélyezed</h3><p>Rendszergazdai lépésnél egyetlen jelszókérés jön (Linuxon pkexec, Windowson UAC).</p></li>
+        <li><h3>Ellenőrzöd</h3><p>A kimenet élőben fut a naplóban. Próba módban semmi nem fut le, csak a parancsok jelennek meg.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="letoltes" id="letoltes" aria-labelledby="letoltes-cim">
+    <div class="keret">
+      <h2 id="letoltes-cim">Letöltés</h2>
+      <p class="szekcio-bev">A kiadások a GitHubon vannak, minden fájl mellett SHA-256 ellenőrzőösszeggel.</p>
+      <div class="platformok">
+        <div class="platform">
+          <h3><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10.5 4.4v7.1H3V5.5Zm0 13 7.5 1.1v-7H3v5.9Zm8.4 1.2L21 21v-8.4h-9.6v7.1Zm0-15.4v7.2H21V3l-9.6 1.3Z"/></svg>Windows 10 és 11</h3>
+          <p>Telepítő (.exe) vagy hordozható zip. Rendszergazdai jog nélkül is telepíthető; a driverekhez és a telemetria-beállításhoz a program felajánlja az újraindítást rendszergazdaként.</p>
+          <a class="gomb fo" href="https://github.com/Botirocky/br-config/releases/latest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Letöltés Windowsra
+          </a>
+        </div>
+        <div class="platform">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 17 6-6-6-6M12 19h8"/></svg>Linux (x86_64)</h3>
+          <p>Önálló csomag, külön Python nem kell. Arch, CachyOS, Debian, Ubuntu, Fedora és openSUSE alapú rendszereken is működik.</p>
+<pre><code>tar xzf BR-Config-*-linux-x86_64.tar.gz
+cd BR-Config-*-linux-x86_64
+./telepites.sh</code></pre>
+          <a class="gomb fo" href="https://github.com/Botirocky/br-config/releases/latest">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            Letöltés Linuxra
+          </a>
+        </div>
+      </div>
+      <p class="kovetelmeny"><b>Rendszerigény:</b> 4 GB RAM (a program kb. 100 MB-ot használ), 64 bites Windows 10/11 vagy Linux. Forrásból Python 3.12 vagy újabb kell, a kiadások a Python 3.14-gyel készülnek.</p>
+    </div>
+  </section>
+
+  <section class="nyilt" aria-labelledby="nyilt-cim">
+    <div class="keret">
+      <div>
+        <h2 id="nyilt-cim">Nyílt forrás, átlátható működés</h2>
+        <p>A teljes forráskód a GitHubon van GPL-3.0 licenccel. Hibát találtál, vagy hiányzik egy program a listából? Nyiss egy issue-t, vagy küldj pull requestet.</p>
+      </div>
+      <a class="gomb" href="https://github.com/Botirocky/br-config/issues">Hiba vagy ötlet beküldése</a>
+    </div>
+  </section>
+</main>
+
+<footer class="lab">
+  <div class="keret">
+    <a class="marka" href="#"><img src="kepek/logo.svg" alt="" width="26" height="26">BR Config</a>
+    <span>Készítette: Botirocky</span>
+    <span>Licenc: GPL-3.0</span>
+    <div class="jobb">
+      <a href="https://github.com/Botirocky/br-config">GitHub</a>
+      <a href="https://github.com/Botirocky/br-config/releases">Kiadások</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const terminal = document.getElementById("terminal");
+  const sorok = [];
+  const kiir = (szoveg, osztaly) => {
+    sorok.push([szoveg, osztaly]);
+    while (sorok.length > 5) sorok.shift();
+    terminal.replaceChildren(...sorok.map(([s, o]) => {
+      const p = document.createElement("p");
+      p.textContent = s;
+      if (o) p.className = o;
+      return p;
+    }));
+  };
+  document.querySelectorAll(".kapcsolo").forEach((k) => {
+    k.addEventListener("click", () => {
+      const be = k.getAttribute("aria-checked") !== "true";
+      k.setAttribute("aria-checked", String(be));
+      const parancs = be ? k.dataset.be : k.dataset.ki;
+      const root = k.dataset.root === "1";
+      kiir("$ " + parancs + (root ? "   [rendszergazda]" : ""), root ? "root" : "");
+      kiir("Kész. (próba mód, semmi nem futott le)", "kesz");
+    });
+  });
+  const kep = document.getElementById("kepernyo-kep");
+  const felirat = document.getElementById("kepernyo-felirat");
+  const fulek = [...document.querySelectorAll(".ful")];
+  const valt = (ful) => {
+    fulek.forEach((f) => {
+      f.setAttribute("aria-selected", String(f === ful));
+      f.tabIndex = f === ful ? 0 : -1;
+    });
+    kep.src = ful.dataset.kep;
+    kep.alt = "A BR Config " + ful.textContent + " oldala";
+    felirat.textContent = ful.dataset.felirat;
+  };
+  fulek.forEach((f, i) => {
+    f.tabIndex = i === 0 ? 0 : -1;
+    f.addEventListener("click", () => valt(f));
+    f.addEventListener("keydown", (e) => {
+      const lepes = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!lepes) return;
+      const kov = fulek[(i + lepes + fulek.length) % fulek.length];
+      kov.focus();
+      valt(kov);
+    });
+  });
+})();
+</script>
+</body>
+</html>

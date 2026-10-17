@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="hatter" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1E293B"/>
+      <stop offset="1" stop-color="#0B1120"/>
+    </linearGradient>
+    <linearGradient id="zold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ADE80"/>
+      <stop offset="1" stop-color="#16A34A"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#hatter)"/>
+  <rect x="8.5" y="8.5" width="239" height="239" rx="55.5" fill="none" stroke="#334155" stroke-width="1"/>
+  <g fill="none" stroke="#F8FAFC" stroke-width="22" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M52 66 V190"/>
+    <path d="M52 66 H90 A28 28 0 0 1 90 122 H52"/>
+    <path d="M52 122 H94 A34 34 0 0 1 94 190 H52"/>
+    <path d="M150 190 V66 H180 A28 28 0 0 1 180 122 H150"/>
+  </g>
+  <path d="M176 122 L212 190" fill="none" stroke="url(#zold)" stroke-width="22" stroke-linecap="round"/>
+</svg>

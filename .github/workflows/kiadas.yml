@@ -1,0 +1,78 @@
+name: Kiadás
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+      - run: uv venv && uv pip install -e ".[dev]"
+      - run: uv run --no-sync pytest -q
+        env:
+          QT_QPA_PLATFORM: offscreen
+      - run: uv run --no-sync pyinstaller --noconfirm --clean --distpath dist --workpath build packaging/br-config.spec
+      - name: Inno Setup
+        run: choco install innosetup -y --no-progress
+      - name: Telepítő
+        shell: pwsh
+        run: |
+          $verzio = "${{ github.ref_name }}".TrimStart("v")
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$verzio" packaging\windows\telepito.iss
+          Compress-Archive -Path dist\BR-Config -DestinationPath "dist\BR-Config-$verzio-windows-hordozhato.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            dist/*-telepito.exe
+            dist/*-hordozhato.zip
+
+  linux:
+    runs-on: ubuntu-22.04
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3 libxcb-cursor0
+      - run: uv venv && uv pip install -e ".[dev]"
+      - run: uv run --no-sync pytest -q
+      - run: uv run --no-sync pyinstaller --noconfirm --clean --distpath dist --workpath build packaging/br-config.spec
+      - name: Csomag
+        run: |
+          verzio="${GITHUB_REF_NAME#v}"
+          nev="BR-Config-$verzio-linux-x86_64"
+          mkdir -p "csomag/$nev/ikonok"
+          cp -a dist/BR-Config "csomag/$nev/"
+          cp packaging/linux/telepites.sh packaging/linux/br-config.desktop LICENSE "csomag/$nev/"
+          cp assets/ikon-*.png assets/ikon.svg "csomag/$nev/ikonok/"
+          tar -C csomag -czf "dist/$nev.tar.gz" "$nev"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*.tar.gz
+
+  kiadas:
+    needs: [windows, linux]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: kiadas
+          merge-multiple: true
+      - name: Ellenőrzőösszegek
+        run: cd kiadas && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: kiadas/*
+          generate_release_notes: true

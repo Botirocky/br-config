@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=BR Config
+GenericName=Rendszerbeállítások
+Comment=Gépfelismerés, driverek, programtelepítés és tuning egy helyen
+Exec=br-config
+Icon=br-config
+Terminal=false
+Categories=System;Settings;Utility;
+Keywords=driver;tuning;telepítés;beállítás;config;
+StartupWMClass=br-config
